@@ -15,10 +15,10 @@ const RELATIONSHIPS: { value: Relationship; label: string }[] = [
 const BLANK: RecipientInsert = {
   full_name:     '',
   relationship:  'friend',
-  email:         null,
-  phone:         null,
+  email:         '',
+  phone:         '',
   address_line1: '',
-  address_line2: null,
+  address_line2: '',
   city:          '',
   postal_code:   '',
   country:       'Germany',
@@ -36,10 +36,10 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
       ? {
           full_name:     recipient.full_name,
           relationship:  recipient.relationship,
-          email:         recipient.email,
-          phone:         recipient.phone,
+          email:         recipient.email         ?? '',
+          phone:         recipient.phone         ?? '',
           address_line1: recipient.address_line1,
-          address_line2: recipient.address_line2,
+          address_line2: recipient.address_line2 ?? '',
           city:          recipient.city,
           postal_code:   recipient.postal_code,
           country:       recipient.country,
@@ -57,15 +57,21 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  function set(field: keyof RecipientInsert, value: string | null) {
-    setForm(prev => ({ ...prev, [field]: value || null }))
+  function set(field: keyof RecipientInsert, value: string) {
+    setForm(prev => ({ ...prev, [field]: value }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setSaving(true)
-    const ok = await onSave(form, recipient?.id)
+    const payload: RecipientInsert = {
+      ...form,
+      email:        form.email        || null,
+      phone:        form.phone        || null,
+      address_line2: form.address_line2 || null,
+    }
+    const ok = await onSave(payload, recipient?.id)
     if (!ok) setError('Failed to save. Please try again.')
     setSaving(false)
   }
