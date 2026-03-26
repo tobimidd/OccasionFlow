@@ -11,11 +11,12 @@ export interface Recipient {
   address_line2: string | null
   city: string
   postal_code: string
-  country: string
+  country: string        // ISO 3166-1 alpha-2 code, e.g. 'DE'
+  state_region: string | null
   created_at: string
   updated_at: string
 }
 
-// user_id injected at save time (see RecipientsClient); nullable fields use string in form state, converted to null | string on submit
+// user_id injected at save time (see RecipientsClient); nullable fields use '' in form state
 export type RecipientInsert = Omit<Recipient, 'id' | 'user_id' | 'created_at' | 'updated_at'>
 export type RecipientUpdate = Partial<RecipientInsert>

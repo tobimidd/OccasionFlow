@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Recipient, RecipientInsert, Relationship } from '@/types/database'
+import { getCountryName } from '@/lib/countries'
 import RecipientForm from './RecipientForm'
 
 const RELATIONSHIP_LABELS: Record<Relationship, string> = {
@@ -233,8 +234,13 @@ export default function RecipientsClient({
                         <circle cx="6.5" cy="5.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
                       </svg>
                       <span>
-                        {[r.address_line1, r.address_line2, r.city, r.postal_code, r.country]
-                          .filter(Boolean).join(', ')}
+                        {[
+                          r.address_line1,
+                          r.address_line2,
+                          [r.postal_code, r.city].filter(Boolean).join(' '),
+                          r.state_region,
+                          getCountryName(r.country),
+                        ].filter(Boolean).join(', ')}
                       </span>
                     </div>
                   </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import type { Recipient, RecipientInsert, Relationship } from '@/types/database'
+import { COUNTRIES } from '@/lib/countries'
 
 const RELATIONSHIPS: { value: Relationship; label: string }[] = [
   { value: 'partner',   label: 'Partner'   },
@@ -21,7 +22,8 @@ const BLANK: RecipientInsert = {
   address_line2: '',
   city:          '',
   postal_code:   '',
-  country:       'Germany',
+  country:       'DE',
+  state_region:  '',
 }
 
 interface Props {
@@ -42,7 +44,8 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
           address_line2: recipient.address_line2 ?? '',
           city:          recipient.city,
           postal_code:   recipient.postal_code,
-          country:       recipient.country,
+          country:       recipient.country       || 'DE',
+          state_region:  recipient.state_region  ?? '',
         }
       : BLANK
   )
@@ -50,7 +53,6 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
 
-  // Close on Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
@@ -67,9 +69,10 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
     setSaving(true)
     const payload: RecipientInsert = {
       ...form,
-      email:        form.email        || null,
-      phone:        form.phone        || null,
+      email:         form.email         || null,
+      phone:         form.phone         || null,
       address_line2: form.address_line2 || null,
+      state_region:  form.state_region  || null,
     }
     const ok = await onSave(payload, recipient?.id)
     if (!ok) setError('Failed to save. Please try again.')
@@ -96,6 +99,38 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
             from { transform: translateX(40px); opacity: 0; }
             to   { transform: translateX(0);    opacity: 1; }
           }
+          .field-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: 'Jost', sans-serif;
+            font-size: 0.875rem;
+            color: var(--ink);
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            outline: none;
+            transition: border-color 0.15s, background 0.15s;
+            -webkit-appearance: none;
+          }
+          .field-input::placeholder { color: var(--ink-muted); }
+          .field-input:focus { border-color: var(--forest); background: #fff; }
+          .field-select {
+            width: 100%;
+            padding: 10px 32px 10px 14px;
+            font-family: 'Jost', sans-serif;
+            font-size: 0.875rem;
+            color: var(--ink);
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239BA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: border-color 0.15s, background-color 0.15s;
+          }
+          .field-select:focus { border-color: var(--forest); background-color: #fff; }
         `}</style>
 
         {/* Header */}
@@ -113,7 +148,7 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center cursor-pointer border-none bg-transparent transition-colors"
+            className="w-8 h-8 flex items-center justify-center cursor-pointer border-none bg-transparent"
             style={{ color: 'var(--ink-muted)' }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--ink-muted)')}
@@ -136,7 +171,7 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
             </div>
           )}
 
-          {/* Section: Personal */}
+          {/* Personal */}
           <section>
             <p className="text-xs font-medium tracking-widest uppercase mb-4" style={{ color: 'var(--ink-muted)' }}>
               Personal
@@ -162,10 +197,10 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
                       onClick={() => set('relationship', value)}
                       className="py-2 px-2 text-xs font-medium cursor-pointer border transition-colors"
                       style={{
-                        background: form.relationship === value ? 'var(--forest)' : 'var(--off-white)',
+                        background:  form.relationship === value ? 'var(--forest)' : 'var(--off-white)',
                         borderColor: form.relationship === value ? 'var(--forest)' : 'var(--border)',
-                        color: form.relationship === value ? '#fff' : 'var(--ink-soft)',
-                        fontFamily: 'inherit',
+                        color:       form.relationship === value ? '#fff' : 'var(--ink-soft)',
+                        fontFamily:  'inherit',
                       }}
                     >
                       {label}
@@ -198,12 +233,26 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
 
           <div className="h-px" style={{ background: 'var(--border)' }} />
 
-          {/* Section: Address */}
+          {/* Address */}
           <section>
             <p className="text-xs font-medium tracking-widest uppercase mb-4" style={{ color: 'var(--ink-muted)' }}>
               Delivery Address
             </p>
             <div className="flex flex-col gap-4">
+
+              <Field label="Country" required>
+                <select
+                  value={form.country}
+                  onChange={e => set('country', e.target.value)}
+                  required
+                  className="field-select"
+                >
+                  {COUNTRIES.map(c => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+              </Field>
+
               <Field label="Street Address" required>
                 <input
                   type="text"
@@ -236,7 +285,7 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
                     className="field-input"
                   />
                 </Field>
-                <Field label="ZIP Code" required>
+                <Field label="ZIP / Postal Code" required>
                   <input
                     type="text"
                     value={form.postal_code}
@@ -248,16 +297,16 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
                 </Field>
               </div>
 
-              <Field label="Country" required>
+              <Field label="State / Region / Province">
                 <input
                   type="text"
-                  value={form.country}
-                  onChange={e => set('country', e.target.value)}
-                  placeholder="Germany"
-                  required
+                  value={form.state_region ?? ''}
+                  onChange={e => set('state_region', e.target.value)}
+                  placeholder="Bavaria, California, Ontario…"
                   className="field-input"
                 />
               </Field>
+
             </div>
           </section>
 
@@ -279,36 +328,18 @@ export default function RecipientForm({ recipient, onSave, onClose }: Props) {
               onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--forest-light)' }}
               onMouseLeave={e => { if (!saving) e.currentTarget.style.background = 'var(--forest)' }}
             >
-              {saving ? (
+              {saving && (
                 <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <circle cx="7" cy="7" r="5" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8"/>
                   <path d="M7 2a5 5 0 0 1 5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
-              ) : null}
+              )}
               {recipient ? 'Save Changes' : 'Add Recipient'}
             </button>
           </div>
 
         </form>
       </div>
-
-      {/* Shared input styles */}
-      <style>{`
-        .field-input {
-          width: 100%;
-          padding: 10px 14px;
-          font-family: 'Jost', sans-serif;
-          font-size: 0.875rem;
-          color: var(--ink);
-          background: var(--off-white);
-          border: 1px solid var(--border);
-          outline: none;
-          transition: border-color 0.15s, background 0.15s;
-          -webkit-appearance: none;
-        }
-        .field-input::placeholder { color: var(--ink-muted); }
-        .field-input:focus { border-color: var(--forest); background: #fff; }
-      `}</style>
     </div>
   )
 }
