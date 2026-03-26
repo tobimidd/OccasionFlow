@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Occasion Flow — Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --off-white:    #F7F6F3;
+      --surface:      #EEECE8;
+      --border:       #D8D4CE;
+      --ink:          #1A1F2E;
+      --ink-soft:     #5C6370;
+      --ink-muted:    #9BA3AF;
+      --forest:       #2E5040;
+      --forest-light: #4A7260;
+      --forest-pale:  #E6EDE9;
+      --stone:        #C8C4BC;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Jost', system-ui, sans-serif;
+      background: var(--off-white);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Auth guard overlay ── */
+    #auth-guard {
+      position: fixed;
+      inset: 0;
+      background: var(--off-white);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #auth-guard.hidden { display: none; }
+    .guard-spinner {
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--forest);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-logo {
+      font-family: 'Bodoni Moda', Georgia, serif;
+      font-size: 1.1875rem;
+      font-weight: 500;
+      color: var(--ink);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--ink-soft);
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      background: var(--forest-pale);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--forest);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--ink-soft);
+      background: transparent;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* ── Main ── */
+    .main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 64px 32px;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s 0.15s ease forwards;
+    }
+
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Welcome header ── */
+    .welcome-eyebrow {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin-bottom: 12px;
+    }
+
+    .welcome-headline {
+      font-family: 'Bodoni Moda', Georgia, serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .welcome-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--ink-soft);
+      max-width: 520px;
+      line-height: 1.65;
+      margin-bottom: 48px;
+    }
+
+    /* ── Divider line ── */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 48px;
+    }
+
+    /* ── Stat cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .stat-card {
+      background: #fff;
+      padding: 28px 28px 24px;
+    }
+
+    .stat-label {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 12px;
+    }
+
+    .stat-value {
+      font-family: 'Bodoni Moda', Georgia, serif;
+      font-size: 2.25rem;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-note {
+      font-size: 0.8125rem;
+      color: var(--ink-muted);
+      font-weight: 300;
+    }
+
+    /* ── Coming soon section ── */
+    .coming-soon {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 40px;
+      display: flex;
+      align-items: flex-start;
+      gap: 32px;
+    }
+
+    .coming-soon-icon {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      background: var(--forest-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--forest);
+    }
+
+    .coming-soon-title {
+      font-family: 'Bodoni Moda', Georgia, serif;
+      font-size: 1.375rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .coming-soon-body {
+      font-size: 0.9375rem;
+      font-weight: 300;
+      color: var(--ink-soft);
+      line-height: 1.65;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+      color: var(--ink-soft);
+      font-weight: 400;
+    }
+
+    .feature-list li::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--forest);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 0 20px; }
+      .main { padding: 40px 20px; }
+      .coming-soon { flex-direction: column; gap: 20px; padding: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Auth guard -->
+<div id="auth-guard"><div class="guard-spinner"></div></div>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <a href="index.html" class="topbar-logo">Occasion Flow</a>
+  <div class="topbar-right">
+    <div class="user-pill">
+      <div class="user-avatar" id="user-avatar">—</div>
+      <span id="user-email">—</span>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3M9 9.5l2.5-3L9 3M11.5 6.5H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Log out
+    </button>
+  </div>
+</header>
+
+<!-- ── Main content ── -->
+<main class="main">
+
+  <p class="welcome-eyebrow">Dashboard</p>
+  <h1 class="welcome-headline" id="welcome-headline">Welcome to<br>Occasion Flow</h1>
+  <p class="welcome-sub">
+    Your account is set up and ready. Soon you'll be able to add recipients, schedule occasions, and let Occasion Flow handle the rest.
+  </p>
+
+  <div class="section-divider"></div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <p class="stat-label">Recipients</p>
+      <p class="stat-value">0</p>
+      <p class="stat-note">No recipients yet</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Occasions</p>
+      <p class="stat-value">0</p>
+      <p class="stat-note">Nothing scheduled</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Orders sent</p>
+      <p class="stat-value">0</p>
+      <p class="stat-note">All time</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Plan</p>
+      <p class="stat-value" style="font-size:1.5rem; padding-top:4px;">Free</p>
+      <p class="stat-note">Upgrade anytime</p>
+    </div>
+  </div>
+
+  <!-- Coming soon -->
+  <div class="coming-soon">
+    <div class="coming-soon-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M11 3v2M11 17v2M3 11H1M21 11h-2M5.05 5.05 3.64 3.64M18.36 18.36l-1.41-1.41M5.05 16.95l-1.41 1.41M18.36 3.64l-1.41 1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div>
+      <h2 class="coming-soon-title">Your dashboard is being built</h2>
+      <p class="coming-soon-body">
+        The full experience is on its way. Here's what's coming next:
+      </p>
+      <ul class="feature-list">
+        <li>Add and manage gift recipients</li>
+        <li>Schedule birthdays, anniversaries & more</li>
+        <li>Browse the curated gift catalogue</li>
+        <li>Track all your orders in one place</li>
+        <li>Manage your subscription</li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL  = 'https://zfgjaxbycewaxabstcik.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZ2pheGJ5Y2V3YXhhYnN0Y2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTczMDAsImV4cCI6MjA5MDA5MzMwMH0.uuCyl9dbpwm39Svv-Cs_51y071AG250mWeQlb-ki5yU';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // ── Auth guard: redirect to login if not authenticated ──
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    initDashboard(session.user);
+    document.getElementById('auth-guard').classList.add('hidden');
+  });
+
+  function initDashboard(user) {
+    const email   = user.email || '';
+    const name    = user.user_metadata?.full_name || email.split('@')[0] || 'there';
+    const initials = name.charAt(0).toUpperCase();
+
+    document.getElementById('user-email').textContent = email;
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('welcome-headline').innerHTML =
+      `Welcome,<br>${escHtml(name.split(' ')[0])}`;
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  function escHtml(str) {
+    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+
+</body>
+</html>

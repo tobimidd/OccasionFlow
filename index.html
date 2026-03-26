@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Occasion Flow — Kein Anlass. Kein Vergessen.</title>
+  <meta name="description" content="Occasion Flow sendet automatisch Blumen und Geschenke — ausgelöst durch Kalendereinträge. Nie wieder einen wichtigen Moment verpassen." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Config (must precede CDN script) -->
+  <script>
+    window.tailwind = {
+      theme: {
+        extend: {
+          colors: {
+            'off-white': '#F7F6F3',
+            surface: '#EEECE8',
+            border: '#D8D4CE',
+            ink: '#1A1F2E',
+            'ink-soft': '#5C6370',
+            'ink-muted': '#9BA3AF',
+            forest: '#2E5040',
+            'forest-light': '#4A7260',
+            'forest-pale': '#E6EDE9',
+            stone: '#C8C4BC',
+          },
+          fontFamily: {
+            display: ['"Bodoni Moda"', 'Georgia', 'serif'],
+            sans: ['Jost', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Jost', system-ui, sans-serif; background: #FFFFFF; color: #1A1F2E; -webkit-font-smoothing: antialiased; }
+
+    /* ── Reveal Animation ── */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+    }
+
+    /* ── Page Load ── */
+    .load-fade { opacity: 0; transform: translateY(16px); animation: loadIn 0.6s ease forwards; }
+    .load-fade-delay { animation-delay: 0.15s; }
+    .load-fade-delay-2 { animation-delay: 0.28s; }
+    @keyframes loadIn { to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Navbar ── */
+    #navbar { transition: background 0.3s, box-shadow 0.3s; }
+    #navbar.scrolled { background: rgba(255,255,255,0.96); box-shadow: 0 1px 0 #D8D4CE; backdrop-filter: blur(8px); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #2E5040; color: #fff; font-family: 'Jost', sans-serif;
+      font-weight: 500; font-size: 0.875rem; letter-spacing: 0.04em;
+      padding: 12px 24px; border: 1px solid #2E5040;
+      transition: background 0.2s, border-color 0.2s;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn-primary:hover { background: #4A7260; border-color: #4A7260; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: #1A1F2E; font-family: 'Jost', sans-serif;
+      font-weight: 500; font-size: 0.875rem; letter-spacing: 0.04em;
+      padding: 11px 24px; border: 1px solid #D8D4CE;
+      transition: border-color 0.2s, color 0.2s;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn-ghost:hover { border-color: #2E5040; color: #2E5040; }
+
+    .btn-primary-sm {
+      display: inline-flex; align-items: center;
+      background: #2E5040; color: #fff; font-family: 'Jost', sans-serif;
+      font-weight: 500; font-size: 0.8125rem; letter-spacing: 0.04em;
+      padding: 9px 20px; border: 1px solid #2E5040;
+      transition: background 0.2s; cursor: pointer; text-decoration: none;
+    }
+    .btn-primary-sm:hover { background: #4A7260; }
+
+    /* ── Feature Cards ── */
+    .feature-card { border-top: 2px solid #2E5040; transition: transform 0.2s; }
+    .feature-card:hover { transform: translateY(-2px); }
+
+    /* ── Pricing ── */
+    .pricing-card { border: 1px solid #D8D4CE; transition: transform 0.2s; }
+    .pricing-card:hover { transform: translateY(-2px); }
+    .pricing-card.featured { border-color: #2E5040; border-width: 2px; }
+
+    /* ── Testimonial Cards ── */
+    .testimonial-card { border-left: 3px solid #2E5040; }
+
+    /* ── FAQ Accordion ── */
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+    .faq-answer.open { max-height: 600px; }
+    .faq-item { border-bottom: 1px solid #D8D4CE; }
+    .faq-toggle-icon { transition: transform 0.3s ease; }
+    .faq-item.open .faq-toggle-icon { transform: rotate(45deg); }
+
+    /* ── Mobile Menu ── */
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+
+    /* ── Pricing Toggle ── */
+    .toggle-track {
+      width: 44px; height: 24px; background: #D8D4CE; border-radius: 12px;
+      cursor: pointer; position: relative; transition: background 0.2s;
+    }
+    .toggle-track.active { background: #2E5040; }
+    .toggle-thumb {
+      width: 18px; height: 18px; background: #fff; border-radius: 50%;
+      position: absolute; top: 3px; left: 3px; transition: left 0.2s;
+    }
+    .toggle-track.active .toggle-thumb { left: 23px; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-family: 'Jost', sans-serif; font-weight: 500;
+      font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #2E5040; display: block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SVG Symbol Defs
+════════════════════════════════════════════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="ic-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+  </symbol>
+  <symbol id="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </symbol>
+  <symbol id="ic-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+  </symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </symbol>
+  <symbol id="ic-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+  </symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </symbol>
+  <symbol id="ic-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+  </symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </symbol>
+  <symbol id="ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </symbol>
+  <symbol id="ic-repeat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+  </symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </symbol>
+  <symbol id="ic-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </symbol>
+  <symbol id="ic-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+  </symbol>
+</svg>
+
+
+<!-- ══════════════════════════════════════════
+     1. NAVBAR
+════════════════════════════════════════════ -->
+<header id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 no-underline">
+        <span style="width:28px;height:28px;background:#2E5040;display:flex;align-items:center;justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
+        <span style="font-family:'Jost',sans-serif;font-weight:600;font-size:0.9375rem;letter-spacing:0.03em;color:#1A1F2E;">Occasion Flow</span>
+      </a>
+
+      <!-- Nav Links (Desktop) -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="#how-it-works" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:400;color:#5C6370;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">So funktioniert's</a>
+        <a href="#features" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:400;color:#5C6370;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Features</a>
+        <a href="#pricing" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:400;color:#5C6370;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Preise</a>
+        <a href="#faq" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:400;color:#5C6370;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">FAQ</a>
+      </nav>
+
+      <!-- CTA -->
+      <div class="hidden md:flex items-center gap-3">
+        <a href="#" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:400;color:#5C6370;text-decoration:none;padding:8px 12px;transition:color 0.2s;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Anmelden</a>
+        <a href="#" class="btn-primary-sm">Jetzt einrichten</a>
+      </div>
+
+      <!-- Mobile Hamburger -->
+      <button id="mobile-menu-btn" class="md:hidden p-2" style="background:none;border:none;cursor:pointer;" aria-label="Menü öffnen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1F2E" stroke-width="1.5" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" style="border-top:1px solid #D8D4CE;background:#fff;">
+    <div class="px-6 py-5 flex flex-col gap-4">
+      <a href="#how-it-works" style="font-family:'Jost',sans-serif;font-size:0.9375rem;color:#1A1F2E;text-decoration:none;">So funktioniert's</a>
+      <a href="#features" style="font-family:'Jost',sans-serif;font-size:0.9375rem;color:#1A1F2E;text-decoration:none;">Features</a>
+      <a href="#pricing" style="font-family:'Jost',sans-serif;font-size:0.9375rem;color:#1A1F2E;text-decoration:none;">Preise</a>
+      <a href="#faq" style="font-family:'Jost',sans-serif;font-size:0.9375rem;color:#1A1F2E;text-decoration:none;">FAQ</a>
+      <hr style="border-color:#D8D4CE;" />
+      <a href="#" class="btn-primary" style="text-align:center;justify-content:center;">Jetzt einrichten</a>
+    </div>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════
+     2. HERO
+════════════════════════════════════════════ -->
+<section style="background:#FFFFFF;padding-top:96px;" id="hero">
+  <div class="max-w-6xl mx-auto px-6 py-20 lg:py-28">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+      <!-- Left: Copy -->
+      <div>
+        <span class="section-label load-fade" style="margin-bottom:24px;">Automatischer Geschenkversand</span>
+        <h1 class="load-fade load-fade-delay" style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2.75rem,5vw,4.25rem);line-height:1.1;color:#1A1F2E;margin:0 0 28px;">
+          Kein Anlass.<br>
+          Kein Vergessen.<br>
+          <span style="color:#2E5040;">Automatisch.</span>
+        </h1>
+        <p class="load-fade load-fade-delay-2" style="font-family:'Jost',sans-serif;font-weight:300;font-size:1.0625rem;line-height:1.7;color:#5C6370;max-width:420px;margin:0 0 36px;">
+          Occasion Flow verbindet deinen Kalender mit einer kuratierten Auswahl an Blumen und Geschenken — und versendet automatisch zum richtigen Zeitpunkt.
+        </p>
+        <div class="load-fade load-fade-delay-2" style="display:flex;flex-wrap:wrap;gap:12px;">
+          <a href="#" class="btn-primary">
+            Jetzt einrichten
+            <svg width="16" height="16"><use href="#ic-arrow-right"/></svg>
+          </a>
+          <a href="#how-it-works" class="btn-ghost">So funktioniert's</a>
+        </div>
+        <!-- Trust Signal -->
+        <div class="load-fade load-fade-delay-2" style="margin-top:40px;display:flex;align-items:center;gap:12px;">
+          <div style="display:flex;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#EEECE8;border:2px solid #fff;display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#5C6370;">M</span>
+            </div>
+            <div style="width:28px;height:28px;border-radius:50%;background:#E6EDE9;border:2px solid #fff;margin-left:-8px;display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#2E5040;">T</span>
+            </div>
+            <div style="width:28px;height:28px;border-radius:50%;background:#D8D4CE;border:2px solid #fff;margin-left:-8px;display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#5C6370;">J</span>
+            </div>
+          </div>
+          <span style="font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;font-weight:300;">Über <strong style="color:#1A1F2E;font-weight:500;">2.400 Männer</strong> nutzen Occasion Flow</span>
+        </div>
+      </div>
+
+      <!-- Right: Calendar Visual -->
+      <div class="reveal" style="display:flex;justify-content:center;align-items:center;">
+        <div style="width:100%;max-width:400px;background:#FFFFFF;border:1px solid #D8D4CE;padding:28px;">
+
+          <!-- Calendar Header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <span style="font-family:'Bodoni Moda',serif;font-weight:400;font-size:1.125rem;color:#1A1F2E;">März 2025</span>
+            <div style="display:flex;gap:8px;">
+              <button style="background:none;border:1px solid #D8D4CE;padding:4px 8px;cursor:pointer;color:#5C6370;font-size:0.75rem;">&#8249;</button>
+              <button style="background:none;border:1px solid #D8D4CE;padding:4px 8px;cursor:pointer;color:#5C6370;font-size:0.75rem;">&#8250;</button>
+            </div>
+          </div>
+
+          <!-- Weekday Labels -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">MO</span>
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">DI</span>
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">MI</span>
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">DO</span>
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">FR</span>
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">SA</span>
+            <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;color:#9BA3AF;text-align:center;letter-spacing:0.06em;">SO</span>
+          </div>
+
+          <!-- Calendar Days -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
+            <span></span><span></span><span></span><span></span><span></span>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">1</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">2</div>
+
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">3</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">4</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">5</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">6</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">7</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">8</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">9</div>
+
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">10</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;font-weight:500;background:#2E5040;color:#fff;">11</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">12</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">13</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">14</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">15</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">16</div>
+
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">17</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">18</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">19</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">20</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;position:relative;">
+              21
+              <span style="position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:#2E5040;border-radius:50%;"></span>
+            </div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">22</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">23</div>
+
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">24</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">25</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">26</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">27</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">28</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">29</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#9BA3AF;">30</div>
+            <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:0.8125rem;color:#1A1F2E;">31</div>
+          </div>
+
+          <!-- Event Card -->
+          <div style="margin-top:20px;border:1px solid #D8D4CE;padding:14px 16px;border-left:3px solid #2E5040;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#2E5040;">11. März</span>
+              <span style="font-family:'Jost',sans-serif;font-size:0.6875rem;color:#9BA3AF;background:#EEECE8;padding:2px 8px;">Automatisch versendet</span>
+            </div>
+            <p style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:500;color:#1A1F2E;margin:0 0 2px;">Geburtstag — Anna</p>
+            <p style="font-family:'Jost',sans-serif;font-size:0.8125rem;font-weight:300;color:#5C6370;margin:0;">Tulpen-Strauß Premium · Lieferung 10:00–12:00</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div style="border-top:1px solid #D8D4CE;max-width:1152px;margin:0 auto;"></div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     3. HOW IT WORKS
+════════════════════════════════════════════ -->
+<section id="how-it-works" style="background:#F7F6F3;padding:96px 0;">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal" style="margin-bottom:64px;">
+      <span class="section-label" style="margin-bottom:16px;">Prozess</span>
+      <h2 style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2rem,3.5vw,3rem);color:#1A1F2E;margin:0;">So funktioniert es</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-0" style="border:1px solid #D8D4CE;">
+      <!-- Step 1 -->
+      <div class="reveal" style="padding:40px;border-top:3px solid #2E5040;border-right:1px solid #D8D4CE;">
+        <div style="font-family:'Bodoni Moda',serif;font-size:3.5rem;font-weight:400;color:#EEECE8;line-height:1;margin-bottom:24px;">1</div>
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-calendar"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:1rem;color:#1A1F2E;margin:0 0 10px;letter-spacing:0.01em;">Kalender verbinden</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Einmalig Google Calendar, Apple Calendar oder Outlook verknüpfen. Occasion Flow liest Geburtstage, Jubiläen und Feiertage aus.</p>
+      </div>
+      <!-- Step 2 -->
+      <div class="reveal" style="padding:40px;border-top:3px solid #2E5040;border-right:1px solid #D8D4CE;">
+        <div style="font-family:'Bodoni Moda',serif;font-size:3.5rem;font-weight:400;color:#EEECE8;line-height:1;margin-bottom:24px;">2</div>
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-gift"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:1rem;color:#1A1F2E;margin:0 0 10px;letter-spacing:0.01em;">Präferenz festlegen</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Budget, Produktkategorie und persönliche Note pro Empfänger definieren. Einmal einrichten, dauerhaft aktiv.</p>
+      </div>
+      <!-- Step 3 -->
+      <div class="reveal" style="padding:40px;border-top:3px solid #2E5040;">
+        <div style="font-family:'Bodoni Moda',serif;font-size:3.5rem;font-weight:400;color:#EEECE8;line-height:1;margin-bottom:24px;">3</div>
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-truck"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:1rem;color:#1A1F2E;margin:0 0 10px;letter-spacing:0.01em;">Automatisch versenden</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Occasion Flow bestellt und versendet pünktlich zum Anlass. Du wirst per E-Mail informiert — ohne Zutun deinerseits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     4. FEATURES
+════════════════════════════════════════════ -->
+<section id="features" style="background:#FFFFFF;padding:96px 0;">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal" style="margin-bottom:64px;">
+      <span class="section-label" style="margin-bottom:16px;">Funktionen</span>
+      <h2 style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2rem,3.5vw,3rem);color:#1A1F2E;margin:0 0 16px;">Alles unter Kontrolle.</h2>
+      <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:1.0625rem;color:#5C6370;max-width:520px;margin:0;">Occasion Flow denkt mit — damit du es nicht musst.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <div class="reveal feature-card" style="padding:28px 24px;background:#fff;border:1px solid #D8D4CE;">
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-zap"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;margin:0 0 8px;">Vollautomatisch</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Kein manuelles Bestellen. Keine Erinnerungen. Keine vergessenen Anlässe.</p>
+      </div>
+
+      <div class="reveal feature-card" style="padding:28px 24px;background:#fff;border:1px solid #D8D4CE;">
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-calendar"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;margin:0 0 8px;">Kalenderintegration</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Google, Apple und Outlook werden unterstützt. Synchronisation in Echtzeit.</p>
+      </div>
+
+      <div class="reveal feature-card" style="padding:28px 24px;background:#fff;border:1px solid #D8D4CE;">
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-users"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;margin:0 0 8px;">Mehrere Empfänger</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Partner, Eltern, Freunde — individuelle Profile mit eigener Präferenz für jeden.</p>
+      </div>
+
+      <div class="reveal feature-card" style="padding:28px 24px;background:#fff;border:1px solid #D8D4CE;">
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-clock"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;margin:0 0 8px;">Pünktliche Lieferung</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Vorausplanung bis zu 7 Tage — garantierte Zustellung zum gewünschten Zeitfenster.</p>
+      </div>
+
+      <div class="reveal feature-card" style="padding:28px 24px;background:#fff;border:1px solid #D8D4CE;">
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-repeat"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;margin:0 0 8px;">Wiederkehrende Anlässe</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Geburtstage und Jubiläen werden automatisch jedes Jahr erkannt und ausgelöst.</p>
+      </div>
+
+      <div class="reveal feature-card" style="padding:28px 24px;background:#fff;border:1px solid #D8D4CE;">
+        <div style="width:40px;height:40px;background:#E6EDE9;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <svg width="20" height="20" style="color:#2E5040;"><use href="#ic-lock"/></svg>
+        </div>
+        <h3 style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;margin:0 0 8px;">Datenschutz</h3>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;line-height:1.65;color:#5C6370;margin:0;">Verschlüsselte Verbindung, DSGVO-konform, Zahlungsdaten werden nie gespeichert.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     5. PRICING
+════════════════════════════════════════════ -->
+<section id="pricing" style="background:#F7F6F3;padding:96px 0;">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal" style="margin-bottom:16px;">
+      <span class="section-label" style="margin-bottom:16px;">Preise</span>
+      <h2 style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2rem,3.5vw,3rem);color:#1A1F2E;margin:0 0 16px;">Klar kalkuliert.</h2>
+      <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:1.0625rem;color:#5C6370;max-width:480px;margin:0 0 36px;">Keine versteckten Gebühren. Die Kosten für Blumen und Geschenke kommen separat dazu.</p>
+    </div>
+
+    <!-- Toggle -->
+    <div class="reveal" style="display:flex;align-items:center;gap:12px;margin-bottom:48px;">
+      <span id="toggle-label-monthly" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:500;color:#1A1F2E;">Monatlich</span>
+      <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span id="toggle-label-annual" style="font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:400;color:#9BA3AF;">
+        Jährlich
+        <span style="font-size:0.75rem;background:#E6EDE9;color:#2E5040;padding:2px 8px;margin-left:6px;font-weight:500;">&#8722;20%</span>
+      </span>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <!-- Starter -->
+      <div class="reveal pricing-card" style="background:#fff;padding:32px;">
+        <div style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#9BA3AF;margin-bottom:20px;">Starter</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:8px;">
+          <span style="font-family:'Bodoni Moda',serif;font-size:2.5rem;font-weight:400;color:#1A1F2E;" id="price-starter">4</span>
+          <span style="font-family:'Jost',sans-serif;font-size:0.875rem;color:#9BA3AF;" id="price-starter-period">&#8364; / Monat</span>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.8125rem;color:#5C6370;margin:0 0 28px;">Für den unkomplizierten Einstieg.</p>
+        <div style="border-top:1px solid #D8D4CE;padding-top:24px;margin-bottom:28px;">
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;">
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Bis zu 2 Empfänger</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> 1 Kalenderverbindung</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> E-Mail-Benachrichtigung</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#C8C4BC;"><svg width="16" height="16" style="color:#C8C4BC;flex-shrink:0;"><use href="#ic-check"/></svg> Budgetkontrolle</li>
+          </ul>
+        </div>
+        <a href="#" class="btn-ghost" style="width:100%;justify-content:center;">Einrichten</a>
+      </div>
+
+      <!-- Pro (Featured) -->
+      <div class="reveal pricing-card featured" style="background:#fff;padding:32px;position:relative;">
+        <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:#2E5040;color:#fff;font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:4px 16px;white-space:nowrap;">Beliebteste Wahl</div>
+        <div style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#2E5040;margin-bottom:20px;margin-top:20px;">Pro</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:8px;">
+          <span style="font-family:'Bodoni Moda',serif;font-size:2.5rem;font-weight:400;color:#1A1F2E;" id="price-pro">12</span>
+          <span style="font-family:'Jost',sans-serif;font-size:0.875rem;color:#9BA3AF;" id="price-pro-period">&#8364; / Monat</span>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.8125rem;color:#5C6370;margin:0 0 28px;">Für alle, die nichts dem Zufall überlassen.</p>
+        <div style="border-top:1px solid #D8D4CE;padding-top:24px;margin-bottom:28px;">
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;">
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Unbegrenzte Empfänger</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> 3 Kalenderverbindungen</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> SMS &amp; E-Mail</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Budgetkontrolle</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Persönliche Notizen</li>
+          </ul>
+        </div>
+        <a href="#" class="btn-primary" style="width:100%;justify-content:center;">Jetzt einrichten</a>
+      </div>
+
+      <!-- Business -->
+      <div class="reveal pricing-card" style="background:#fff;padding:32px;">
+        <div style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#9BA3AF;margin-bottom:20px;">Business</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:8px;">
+          <span style="font-family:'Bodoni Moda',serif;font-size:2.5rem;font-weight:400;color:#1A1F2E;" id="price-business">29</span>
+          <span style="font-family:'Jost',sans-serif;font-size:0.875rem;color:#9BA3AF;" id="price-business-period">&#8364; / Monat</span>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.8125rem;color:#5C6370;margin:0 0 28px;">Für Teams, Unternehmen und Berater.</p>
+        <div style="border-top:1px solid #D8D4CE;padding-top:24px;margin-bottom:28px;">
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;">
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Alles aus Pro</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Team-Dashboard</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Rechnungsversand</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> API-Zugang</li>
+            <li style="display:flex;align-items:center;gap:10px;font-family:'Jost',sans-serif;font-size:0.875rem;font-weight:300;color:#5C6370;"><svg width="16" height="16" style="color:#2E5040;flex-shrink:0;"><use href="#ic-check"/></svg> Priority Support</li>
+          </ul>
+        </div>
+        <a href="#" class="btn-ghost" style="width:100%;justify-content:center;">Kontakt aufnehmen</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     6. TESTIMONIALS
+════════════════════════════════════════════ -->
+<section style="background:#EEECE8;padding:96px 0;">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="reveal" style="margin-bottom:64px;">
+      <span class="section-label" style="margin-bottom:16px;">Stimmen</span>
+      <h2 style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2rem,3.5vw,3rem);color:#1A1F2E;margin:0;">Was Nutzer sagen.</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <div class="reveal testimonial-card" style="background:#fff;padding:28px 24px;">
+        <div style="display:flex;gap:3px;margin-bottom:16px;">
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9375rem;line-height:1.7;color:#1A1F2E;margin:0 0 20px;">Ich hab meinen Hochzeitstag seit Jahren nicht mehr selbst im Griff gehabt. Jetzt läuft das automatisch und meine Frau denkt, ich hab's endlich im Griff.</p>
+        <div style="font-family:'Jost',sans-serif;font-size:0.8125rem;font-weight:500;color:#5C6370;">Markus T., 38 — Hamburg</div>
+      </div>
+
+      <div class="reveal testimonial-card" style="background:#fff;padding:28px 24px;">
+        <div style="display:flex;gap:3px;margin-bottom:16px;">
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9375rem;line-height:1.7;color:#1A1F2E;margin:0 0 20px;">Setup in 4 Minuten. Seitdem null Gedanken dran verschwendet. Genau was ich gesucht habe.</p>
+        <div style="font-family:'Jost',sans-serif;font-size:0.8125rem;font-weight:500;color:#5C6370;">Julian K., 31 — München</div>
+      </div>
+
+      <div class="reveal testimonial-card" style="background:#fff;padding:28px 24px;">
+        <div style="display:flex;gap:3px;margin-bottom:16px;">
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+          <svg width="14" height="14" style="color:#2E5040;"><use href="#ic-star"/></svg>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9375rem;line-height:1.7;color:#1A1F2E;margin:0 0 20px;">Nutze es für Mutter, Schwester, Freundin. Jede denkt, ich bin besonders aufmerksam. Kein Kommentar.</p>
+        <div style="font-family:'Jost',sans-serif;font-size:0.8125rem;font-weight:500;color:#5C6370;">Thomas R., 44 — Berlin</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     7. FAQ
+════════════════════════════════════════════ -->
+<section id="faq" style="background:#FFFFFF;padding:96px 0;">
+  <div class="max-w-3xl mx-auto px-6">
+
+    <div class="reveal" style="margin-bottom:56px;">
+      <span class="section-label" style="margin-bottom:16px;">FAQ</span>
+      <h2 style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2rem,3.5vw,3rem);color:#1A1F2E;margin:0;">Häufige Fragen.</h2>
+    </div>
+
+    <div id="faq-list">
+
+      <div class="faq-item reveal" style="border-top:1px solid #D8D4CE;">
+        <button class="faq-question" onclick="toggleFAQ(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;">
+          <span style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;">Welche Kalender werden unterstützt?</span>
+          <svg class="faq-toggle-icon" width="18" height="18" style="color:#2E5040;flex-shrink:0;"><use href="#ic-plus"/></svg>
+        </button>
+        <div class="faq-answer">
+          <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9rem;line-height:1.7;color:#5C6370;margin:0;padding-bottom:20px;">Google Calendar, Apple Calendar und Microsoft Outlook werden vollständig unterstützt. Die Verbindung erfolgt per OAuth — deine Zugangsdaten verlassen nie dein Gerät.</p>
+        </div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-question" onclick="toggleFAQ(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;">
+          <span style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;">Kann ich einen Versand stoppen oder anpassen?</span>
+          <svg class="faq-toggle-icon" width="18" height="18" style="color:#2E5040;flex-shrink:0;"><use href="#ic-plus"/></svg>
+        </button>
+        <div class="faq-answer">
+          <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9rem;line-height:1.7;color:#5C6370;margin:0;padding-bottom:20px;">Ja. Bis 48 Stunden vor Liefertermin kannst du Produkt, Budget und Adresse jederzeit ändern oder den Auftrag stornieren — kostenfrei.</p>
+        </div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-question" onclick="toggleFAQ(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;">
+          <span style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;">Was kostet eine Lieferung zusätzlich zum Abo?</span>
+          <svg class="faq-toggle-icon" width="18" height="18" style="color:#2E5040;flex-shrink:0;"><use href="#ic-plus"/></svg>
+        </button>
+        <div class="faq-answer">
+          <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9rem;line-height:1.7;color:#5C6370;margin:0;padding-bottom:20px;">Produktpreis + 4,90 &#8364; Liefergebühr. Du legst ein Budgetlimit pro Empfänger fest — darüber hinaus wird niemals abgerechnet. Transparente Abrechnung per E-Mail nach jeder Bestellung.</p>
+        </div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-question" onclick="toggleFAQ(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;">
+          <span style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;">In welche Länder wird geliefert?</span>
+          <svg class="faq-toggle-icon" width="18" height="18" style="color:#2E5040;flex-shrink:0;"><use href="#ic-plus"/></svg>
+        </button>
+        <div class="faq-answer">
+          <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9rem;line-height:1.7;color:#5C6370;margin:0;padding-bottom:20px;">Deutschland, Österreich und die Schweiz. Weitere europäische Länder folgen im Laufe des Jahres.</p>
+        </div>
+      </div>
+
+      <div class="faq-item reveal" style="border-bottom:1px solid #D8D4CE;">
+        <button class="faq-question" onclick="toggleFAQ(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;">
+          <span style="font-family:'Jost',sans-serif;font-weight:500;font-size:0.9375rem;color:#1A1F2E;">Wie kann ich kündigen?</span>
+          <svg class="faq-toggle-icon" width="18" height="18" style="color:#2E5040;flex-shrink:0;"><use href="#ic-plus"/></svg>
+        </button>
+        <div class="faq-answer">
+          <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.9rem;line-height:1.7;color:#5C6370;margin:0;padding-bottom:20px;">Jederzeit mit einem Klick im Dashboard. Keine Fristen, keine versteckten Kosten. Das Abo läuft bis zum Ende des bezahlten Zeitraums weiter.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     8. CTA BANNER
+════════════════════════════════════════════ -->
+<section style="background:#1A1F2E;padding:96px 0;">
+  <div class="max-w-4xl mx-auto px-6 text-center reveal">
+    <span class="section-label" style="color:#4A7260;margin-bottom:24px;">Jetzt starten</span>
+    <h2 style="font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:clamp(2.25rem,4vw,3.5rem);color:#FFFFFF;line-height:1.15;margin:0 0 20px;">
+      Der Mann, der nichts vergisst —<br>
+      <span style="color:#4A7260;">weil er es nicht muss.</span>
+    </h2>
+    <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:1.0625rem;color:#9BA3AF;max-width:480px;margin:0 auto 40px;">Einmal einrichten. Dauerhaft wirkungsvoll. Kein Aufwand, keine Ausreden.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
+      <a href="#" style="display:inline-flex;align-items:center;gap:8px;background:#2E5040;color:#fff;font-family:'Jost',sans-serif;font-weight:500;font-size:0.875rem;letter-spacing:0.04em;padding:14px 28px;border:1px solid #2E5040;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='#4A7260'" onmouseout="this.style.background='#2E5040'">
+        Jetzt einrichten
+        <svg width="16" height="16"><use href="#ic-arrow-right"/></svg>
+      </a>
+      <a href="#" style="display:inline-flex;align-items:center;gap:8px;background:transparent;color:#fff;font-family:'Jost',sans-serif;font-weight:400;font-size:0.875rem;letter-spacing:0.04em;padding:13px 28px;border:1px solid rgba(255,255,255,0.2);text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)'">
+        Demo ansehen
+      </a>
+    </div>
+    <p style="font-family:'Jost',sans-serif;font-size:0.8125rem;font-weight:300;color:#5C6370;margin-top:20px;">14 Tage kostenlos · Keine Kreditkarte erforderlich</p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     9. FOOTER
+════════════════════════════════════════════ -->
+<footer style="background:#F7F6F3;border-top:1px solid #D8D4CE;padding:56px 0 36px;">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="grid md:grid-cols-4 gap-10" style="margin-bottom:48px;">
+
+      <!-- Brand -->
+      <div class="md:col-span-1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <span style="width:24px;height:24px;background:#2E5040;display:flex;align-items:center;justify-content:center;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
+          <span style="font-family:'Jost',sans-serif;font-weight:600;font-size:0.875rem;letter-spacing:0.03em;color:#1A1F2E;">Occasion Flow</span>
+        </div>
+        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.8125rem;line-height:1.65;color:#9BA3AF;margin:0;">Automatischer Geschenk- und Blumenversand für Männer, die es ernst meinen.</p>
+      </div>
+
+      <!-- Produkt -->
+      <div>
+        <div style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#9BA3AF;margin-bottom:14px;">Produkt</div>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;">
+          <li><a href="#how-it-works" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">So funktioniert's</a></li>
+          <li><a href="#features" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Features</a></li>
+          <li><a href="#pricing" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Preise</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div>
+        <div style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#9BA3AF;margin-bottom:14px;">Support</div>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;">
+          <li><a href="#faq" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">FAQ</a></li>
+          <li><a href="#" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Kontakt</a></li>
+          <li><a href="#" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Versandpartner</a></li>
+        </ul>
+      </div>
+
+      <!-- Rechtliches -->
+      <div>
+        <div style="font-family:'Jost',sans-serif;font-size:0.6875rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#9BA3AF;margin-bottom:14px;">Rechtliches</div>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;">
+          <li><a href="#" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Datenschutz</a></li>
+          <li><a href="#" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">AGB</a></li>
+          <li><a href="#" style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.875rem;color:#5C6370;text-decoration:none;" onmouseover="this.style.color='#1A1F2E'" onmouseout="this.style.color='#5C6370'">Impressum</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div style="border-top:1px solid #D8D4CE;padding-top:24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;">
+      <span style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.8125rem;color:#9BA3AF;">&#169; 2025 Occasion Flow. Alle Rechte vorbehalten.</span>
+      <span style="font-family:'Jost',sans-serif;font-weight:300;font-size:0.8125rem;color:#C8C4BC;">DE · AT · CH</span>
+    </div>
+
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+  // ── Page Load ───────────────────────────────
+  function initPageLoad() {
+    // CSS animation handles this via .load-fade classes
+  }
+
+  // ── Scroll Reveal ───────────────────────────
+  function initScrollReveal() {
+    const els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    const io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    els.forEach(function(el) { io.observe(el); });
+  }
+
+  // ── Navbar Scroll ───────────────────────────
+  function initNavScroll() {
+    var nav = document.getElementById('navbar');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 40) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    }, { passive: true });
+  }
+
+  // ── Mobile Menu ─────────────────────────────
+  function initMobileMenu() {
+    var btn = document.getElementById('mobile-menu-btn');
+    var menu = document.getElementById('mobile-menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function() {
+      menu.classList.toggle('open');
+    });
+    menu.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() { menu.classList.remove('open'); });
+    });
+  }
+
+  // ── Pricing Toggle ──────────────────────────
+  var isAnnual = false;
+  var prices = {
+    starter:  { monthly: 4,  annual: 3  },
+    pro:      { monthly: 12, annual: 10 },
+    business: { monthly: 29, annual: 23 },
+  };
+
+  function toggleBilling() {
+    isAnnual = !isAnnual;
+    var track = document.getElementById('billing-toggle');
+    if (isAnnual) {
+      track.classList.add('active');
+    } else {
+      track.classList.remove('active');
+    }
+
+    var lm = document.getElementById('toggle-label-monthly');
+    lm.style.fontWeight = isAnnual ? '400' : '500';
+    lm.style.color = isAnnual ? '#9BA3AF' : '#1A1F2E';
+
+    var suffix = isAnnual ? ' \u00D7\u00A012' : '';
+    var period = isAnnual ? '\u20AC\u00A0/ Monat (j\u00E4hrlich)' : '\u20AC\u00A0/ Monat';
+
+    document.getElementById('price-starter').textContent   = isAnnual ? prices.starter.annual   : prices.starter.monthly;
+    document.getElementById('price-starter-period').textContent = period;
+
+    document.getElementById('price-pro').textContent       = isAnnual ? prices.pro.annual       : prices.pro.monthly;
+    document.getElementById('price-pro-period').textContent = period;
+
+    document.getElementById('price-business').textContent  = isAnnual ? prices.business.annual  : prices.business.monthly;
+    document.getElementById('price-business-period').textContent = period;
+  }
+
+  // ── FAQ Accordion ───────────────────────────
+  function toggleFAQ(btn) {
+    var item = btn.closest('.faq-item');
+    var answer = item.querySelector('.faq-answer');
+    var isOpen = item.classList.contains('open');
+
+    document.querySelectorAll('.faq-item').forEach(function(i) {
+      i.classList.remove('open');
+      i.querySelector('.faq-answer').classList.remove('open');
+    });
+
+    if (!isOpen) {
+      item.classList.add('open');
+      answer.classList.add('open');
+    }
+  }
+
+  // ── Init ────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    initPageLoad();
+    initScrollReveal();
+    initNavScroll();
+    initMobileMenu();
+  });
+</script>
+
+</body>
+</html>
