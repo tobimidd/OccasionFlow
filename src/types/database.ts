@@ -36,3 +36,19 @@ export interface Occasion {
 
 export type OccasionInsert = Omit<Occasion, 'id' | 'user_id' | 'created_at' | 'updated_at'>
 export type OccasionUpdate = Partial<OccasionInsert>
+
+export type GiftCategory = 'flowers' | 'chocolate' | 'wine' | 'jewelry' | 'experience' | 'other'
+
+export interface Gift {
+  id: string
+  name: string
+  category: GiftCategory
+  price: number
+  description: string | null
+  image_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Shared catalogue — no user_id
+export type GiftInsert = Omit<Gift, 'id' | 'created_at' | 'updated_at'>
