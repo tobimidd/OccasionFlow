@@ -53,10 +53,13 @@ export default function RecipientsClient({
       if (error) { setActionError(error.message); return false }
       setRecipients(prev => prev.map(r => r.id === id ? updated as Recipient : r))
     } else {
-      // Insert
+      // Insert — must include user_id so RLS with_check (auth.uid() = user_id) passes
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setActionError('Not authenticated.'); return false }
+
       const { data: inserted, error } = await supabase
         .from('recipients')
-        .insert(data)
+        .insert({ ...data, user_id: user.id })
         .select()
         .single()
       if (error) { setActionError(error.message); return false }

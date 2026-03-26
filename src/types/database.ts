@@ -16,5 +16,7 @@ export interface Recipient {
   updated_at: string
 }
 
+// user_id is omitted from the form fields but injected at save time (see RecipientsClient)
 export type RecipientInsert = Omit<Recipient, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+export type RecipientInsertWithUser = RecipientInsert & { user_id: string }
 export type RecipientUpdate = Partial<RecipientInsert>
